@@ -4,7 +4,10 @@ Welcome to this introductory Hands-On session for Kubernetes.
 
 ### Table of Contents
 
-[Starting Minikube](https://github.com/cedricfeist/kubernetes-hands-on#0-starting-minikube)
+[1. Starting Minikube](#1-starting-minikube)
+
+[Resources](#resources)
+
 
 [Introduction to kubectl](https://github.com/cedricfeist/kubernetes-hands-on#1-introduction-to-kubectl)
 
@@ -17,282 +20,243 @@ Welcome to this introductory Hands-On session for Kubernetes.
 [Network Policy](https://github.com/cedricfeist/kubernetes-hands-on#5-network-policy)
 
 
-First things first:
-
-Start by cloning the repo into your favourite directory.
-
-```
-git clone https://github.com/cedricfeist/kubernetes-hands-on
-
-cd kubernetes-hands-on
-```
-
-### 0. Starting Minikube
+### 1. Setting up the repo and minikube
 ------
-Reference on how to install minikube, as well as potential errors, check the [kubernetes website](https://minikube.sigs.k8s.io/docs/start/).
 
-Start minikube, remember to set the cni flag to calico as we will be using network policies at the end of the lab. 
+- Clone this repository to your local machine
 
-```
-minikube start --driver=docker --network-plugin=cni --cni=calico
-```
+`git clone https://github.com/conmurphy/kubernetes-hands-on`
 
-Wait for all system pods to be in the `Running 1/1` state
+`cd kubernetes-hands-on`
 
-```
-kubectl get pods -n kube-system
-```
+- If you haven't already, follow the instructions from the Minikube website to install and start Minikube
 
-> :warning: Remember to start docker desktop if using docker as driver
+[https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/)
 
-> :warning: If you had an old installation of Minikube which you updated and are getting errors, try:
+> Remember to start Docker Desktop if using docker as driver
 
-```
-minikube delete --all --purge
-```
+- Start Minikube and set the CNI flag to Calico
 
-```
-docker system prune
-```
+`minikube start --driver=docker --network-plugin=cni --cni=calico --nodes=2`
 
-#### (Optional but convenient) On Mac: 
+- Wait for all system pods to be in the `Running 1/1` state
 
-You can easily create an Alias for kubectl. This way you can enter "k" instead of kubectl every time you want to enter a kubernetes command. 
+`kubectl get pods -n kube-system`
 
-Completion can also be enabled for this alias, this way Tab can be pressed to show a list of available commands (instead of entering help every time).
-
-##### On Mac:
-
-###### BASH
-
-If you are using BASH, use these steps:
-
-```
-source <(kubectl completion bash #This sets up autocompletion for the current shell
-
-echo "source <(kubectl completion bash)" >> ~/.bashrc
-``` 
-
-This sets up autocomplete permanently - but only takes effect for new terminal sessions. 
-
-
-```
-alias k=kubectl
-
-complete -F __start_kubectl k
-```
-
-###### ZSH
-
-If you are using ZSH, use these steps:
-
-```
-source <(kubectl completion zsh
-
-echo "[[ $commands[kubectl] ]] && source <(kubectl completion zsh)" >> ~/.zshrc
-
-alias k=kubectl
-
-complete -F __start_kubectl k
-```
-
-#### Convenient Resources
-
-[Official Kubernetes.io CheatSheet Page](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
-
-[A more compact Kubernetes Cheat Sheet pdf](https://linuxacademy.com/site-content/uploads/2019/04/Kubernetes-Cheat-Sheet_07182019.pdf)
-
-
-### 1. Introduction to kubectl
+### 2. Introduction to kubectl
 ------
-Kubernetes can be interacted with via the Kubernetes command line interface, Kubectl. Kubectl talks to the Kubernetes API to interact with the cluster. When starting Minikube, kubectl will automatically be configured to connect to the minikube cluster. 
+You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kubernetes API. When starting Minikube, kubectl will automatically be configured to connect to the minikube cluster. 
 
-First, we will try some basic "read" commands to show how you can get information from your cluster. See the cheat sheets above for some more commands to try, as well as shortened versions of the commands for real Pros. :sunglasses:
+> A Kubernetes cluster is made up of a number of control plane and worker nodes.
 
-```kubectl get nodes``` shows the nodes that belong to your Kubernetes cluster. Try adding the flag `-o wide` to the command to see how the output changes. 
+- View the Kubernetes nodes that make up the cluster
 
+`kubectl get nodes` 
 
-Namespaces are a logical way to group resources in a cluster into separate spaces. Take a look which Namespaces exist in minikube clusters by default.
+- View more details using the `-o wide` flag 
 
-```kubectl get namespaces``` 
+`kubectl get nodes -o wide`
 
+- Describe the nodes to see more details
 
-```kubectl get pods -A``` - the -A flag shows pods in all Namespaces with an extra column to show which namespace the pod belongs to. 
+`kubectl describe nodes`
 
-Some other useful commands include checking the logs of a container running in a Pod:
+- You can also describe an individual node (or other Kubernetes resource) using the node name found in the `kubectl get nodes` command.
 
-```
-kubectl logs etcd-minikube -n kube-system
-``` 
+`kubectl describe node <node-name>`
 
-Or, for more involved troubleshooting, opening a terminal session to a container. 
+> Namespaces are a logical way to group resources in a cluster into separate spaces
 
-```
-kubectl exec --stdin --tty etcd-minikube -n kube-system -- /bin/sh
-```
+- Take a look at which namespaces exist by default in a Minikube cluster
 
-Type `exit` to exit the shell session. 
+`kubectl get namespaces`
 
+> Pods are the smallest deployable units of computing that you can create and manage in Kubernetes. They contain one or more containers.
 
-### 2. Starting a Pod - Imperative
+- View the pods in the default namespace by using the `-n <namespace name>` flag
+
+`kubectl get pods -n default`
+
+- If you don't specify a namespace, the `kubectl` comma will apply to the `default` namespace
+
+`kubectl get pods`
+
+- If you want to search all namespaces you can use the `-A` flag
+
+`kubectl get pods -A`
+
+### 3. Starting a Pod - `kubectl run`
 ------
-It's time to start our first Pod. :running_man: 
 
-```
-kubectl run firstpod --image=oguzpastirmaci/hostname
-```
+- You can start a pod using the `kubectl run` command and the format ` kubectl run NAME --image=image` where `NAME` is what you want to call your pod and `image` is the name of the image you want to run
 
-To make this pod accessible from outside the cluster, we need to create a service.
+`kubectl run firstpod --image=oguzpastirmaci/hostname`
 
-```
-kubectl expose pod firstpod --port=8000 --type=LoadBalancer
-```
+- Confirm the pod is running
 
-In a production environment, we would have an IP Management system that associates available IPs with the LoadBalancer Service we just created. 
+`kubectl get pods`
 
-Minikube has built-in functionality to allow us to access this traffic from our local machine. 
+- To make this pod accessible from outside the cluster, you need to create a service.
 
-> :warning: open a new terminal/cmd instance
+`kubectl expose pod firstpod --port=8000 --type=LoadBalancer`
 
-```
-minikube tunnel
-```
+- Check the Kubernetes service has been created. You should see the `EXTERNAL-IP` is in `<pending>` status
 
-You might have to wait a few seconds before the tunnel is established
+`kubectl get svc`
 
-:warning: There will be no dynamic output. :running_man: `Starting tunnel for service firstpod.` Indicates the tunnel was established.
+<br>
+Minikube has built-in functionality to allow you to access this traffic from the local machine. 
+<br>
+<br>
 
-```
-kubectl get service
-``` 
-Note that a port number and the IP of our Localhost are displayed here. If an IP appears under External IP, the tunnel was successfully established.
+- Open a **new** terminal/cmd instance
 
-> Open [localhost:8000](http://localhost:8000) on the browser of your choice.
+`minikube tunnel`
 
-This simple app displays the hostname of the container we are connected to. Since we only have one right now, this won't change when refreshing the page. 
+- You might have to wait a few seconds before the tunnel is established. There will be no dynamic output. 
 
-We can now observe the objects we just created and look into the specification using the `describe` keyword.
+- You should see `Starting tunnel for service firstpod` which indicates the tunnel was established.
 
-```
-kubectl get pods
-```
-```
-kubectl describe pod firstpod
-```
-```
-kubectl get services
-```
-```
-kubectl describe service firstpod
-```
+- Confirm that the service was created and and an `EXTERNAL-IP` was assigned. You may see `127.0.0.1` as the IP address
 
-Because we manually created this app, we will delete it for now as there are better ways to deploy on Kubernetes. 
+`kubectl get service` 
 
-```
-kubectl delete service firstpod
-```
-```
-kubectl delete pod firstpod
-```
-> :warning: On some versions of kubectl the "run" command may create a deployment.
-> :warning: In this case, deleting the pod will cause Kubernetes to restart a new one.  
-> :warning: To delete the deployment, enter `kubectl delete deployment firstpod`.
+- Open [localhost:8000](http://localhost:8000) in the browser of your choice.
+
+<br>
+This simple app displays the hostname of the container you are connected to. Since you only have one right now, this won't change when refreshing the page. 
 
 
+- You can now observe the resources
 
-### 3. Declarative Deployments
+`kubectl get pods`
+
+`kubectl describe pod firstpod`
+
+`kubectl get services`
+
+`kubectl describe service firstpod`
+
+
+- Clean up the app resources
+
+`kubectl delete service firstpod`
+
+`kubectl delete pod firstpod`
+
+### 4. Deploying an app - `kubectl apply`
 ------
-Before entering the next commands, take a look at the *hostname-namespace*, *hostname-deployment*, and *hostname-service* YAML files in the cloned repository. 
 
-Once you have taken note of the configuration, apply the configuration stored in these files via the following commands.
+This section will again deploy the hostname application (with 2 replicas) but the settings will be stored in a configuration file rather than from the command line.
 
-```
-kubectl apply -f hostname-namespace.yaml
+- Change the directory into the `demo04` folder
 
-kubectl apply -f hostname-deployment.yaml
+`cd demo04`
 
-kubectl apply -f hostname-service.yaml
-```
+- Look through the files in the folder
+  - `hostname-namespace.yaml`
+  - `hostname-deployment.yaml`
+  - `hostname-service.yaml`
 
-We just created a number of resources. We could look at these individually using the commands above, or - because we grouped them in a namespace - we can look at all the resources in the namespace using the following command. 
+- Apply the configuration 
 
-```
-kubectl get all -n hostname
-```
+`kubectl apply -f hostname-namespace.yaml`
 
-From this output, you should be able to see which port the app is running on. 
+`kubectl apply -f hostname-deployment.yaml`
 
-> Open localhost on the port you see in the service we just created
+`kubectl apply -f hostname-service.yaml`
 
-:warning: Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
+- You can look at individual resources or all resources together
 
-You might have seen that the deployment only started 1 pod. This is not much different to our last app, so let's edit the hostname-deployment.yaml file to have 3 replicas. 
+`kubectl get all -n hostname`
 
-> Change the number next to `replicas: ` to 3, save it, and update the configuration on your cluster using `kubectl apply -f hostname-deployment.yaml`
+- Confirm that two pods are running
+
+`kubectl get pods -n hostname`
+
+> Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
+
+- Take note of the address and port the app is running on. 
+
+`kubectl get services -n hostname`
+
+- In your browser open localhost on the port you see in the service we just created
+
+
+- Refresh the page on your browser (ctrl/cmd + shift + r) to show change between pods. 
+
+> Every now and then the hostname should change, to show that the LoadBalancer is directing traffic to a new Pod. Caching mechanisms might prevent the page from refreshing properly to see the hostname change. 
+
+> Try `curl http://localhost:port` in your Terminal to see the LadBalancing mechanism switch between the pods. 
+
+
+- Edit the hostname-deployment.yaml file to have 3 replicas
+
+- Change the number next to `replicas: ` to `3` and save the file
+
+- Update the configuration on your cluster 
+
+`kubectl apply -f hostname-deployment.yaml`
 
 You should see an output: `deployment.apps/hostname configured`
 
-> Refresh the page on your browser (ctrl/cmd + shift + r) to show change between pods. Every now and then the hostname should change, to show that the LoadBalancer is directing traffic to a new Pod. 
+- Cleanup the resouces
 
-> :warning: Caching mechanisms might prevent the page from refreshing properly to see the hostname change. 
-> Try `curl http://localhost:port` in your Terminal to see the LadBalancing mechanism switch between the pods. 
+`kubectl delete -f hostname-namespace.yaml`
 
-You can leave these pods running, but if you want to delete them here are the steps to do so. 
-
-```
-kubectl delete -f hostname-namespace.yaml
-```
-
-> :warning: This operation may take a few minutes. 
 
 Deleting a namespace will delete all resources within it. 
 
-### 4. Stateless vs Stateful Apps
+### 5. Stateless vs Stateful Apps
 ------
-Before we find out how Persistent Volumes and Persistent Volume Claims can help us with designing Apps, look at message-board-all-in-one.yaml. Instead of keeping each resource in a separate file, we have combined them all in one YAML file which contains the entire configuration of the application. 
 
-Once you have taken a look, apply the configuration...
+- Change directory into `demo05`
 
-```
-kubectl apply -f message-board-all-in-one.yaml
-```
+`cd demo05`
 
-...and see all the resources created. 
+- Look at `message-board-all-in-one.yaml`
 
-```
-kubectl get all -n message-board
-```
+> Note that instead of keeping each resource in a separate file, all have been combined into a single file.
 
-Some of the pods might take a while to be fully available. Instead of running the same command over and over to monitor the readiness of a resource, we can use the `-w` flag to watch the resource for changes. 
+- Apply the configuration
 
-```
-kubectl get pods -n message-board -w
-```
+`kubectl apply -f message-board-all-in-one.yaml`
 
-Wait for The Pod to be Running and Ready. 
+- Check the resources were created 
 
-:warning: Once the pods are running, press `ctrl + c` to go back. 
+`kubectl get all -n message-board`
 
-> If not open from previous exercises: open up a new Terminal window using `minikube tunnel` 
+- Watch the resources as they're created by using the `-w` flag
 
-> Open [localhost:5000](http://localhost:5000), sign up to the message board, log in, and write a message. 
+`kubectl get pods -n message-board -w`
 
-We now have a message displayed in our app. What happens when we delete the pod that is hosting the website?
+- Wait for The Pod to be Running and Ready. 
 
-The following command will delete our pod running in the message-board namespace.
+- Once the pods are running, press `ctrl + c` to go back. 
 
-```
-kubectl delete pod -l name=message-board -n message-board
-```
-```
-kubectl get pods -n message-board
-```
+- If the `minikube tunnel` from previous sections was closed then open a new one
 
-> Wait for the new container to be started. Note: Kubernetes noticed the missing container, and automatically started another one to reach the desired state. 
+- `minikube tunnel`
 
-> Reload the Page 
+- Open [localhost:5000](http://localhost:5000)
 
-Notice that the message is still there. This is because our message was saved in our Persistent Volume, which gets attached to our container. The containers themselves are stateless and do not store any data. There are a few use-cases for storing data in a container (short-lived caches for example) but generally it is best practice to store persistent data in a Persistent Volume. 
+- Sign up to the message board, log in, and write a message
+
+- Refresh the page and confirm that the message still remains
+
+- Delete the pod, confirm it was deleted and that a new one is starting
+
+`kubectl delete pod -l name=message-board -n message-board`
+
+`kubectl get pods -n message-board`
+
+- Reload the page 
+
+- Confirm that the message is still there.
+
+> This is because the message was saved in a Persistent Volume, which gets attached to the pod. 
+
+
 
 ### 5. Network Policy
 ------
@@ -347,19 +311,18 @@ It might take a few more moments as before, but eventually the message will reap
 
 ### Stopping Minikube
 ------
-Feel free to keep the cluster running and experimenting with Kubernetes. 
 
-Once you are done, you can stop the cluster:
+- If you are finished with the lab you can stop the cluster
 
-```
-minikube stop
-```
+`minikube stop`
 
-This stops the minikube cluster, but retains the state for when you start the cluster again via `minikube start`.
+- This stops the minikube cluster, but retains the state for when you start the cluster again via `minikube start`.
 
-If you ever break your cluster, or want to start fresh you can delete the cluster with `minikube delete`. If you have multiple clusters this changes to `minikube delete --all`. 
+- To completely delete the cluster you can run `minikube delete`
 
+## Resources
 
+[Official Kubernetes.io CheatSheet Page](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 
 
