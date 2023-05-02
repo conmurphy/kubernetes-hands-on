@@ -154,9 +154,9 @@ This section will again deploy the hostname application (with 2 replicas) but th
 `cd demo04`
 
 - Look through the files in the folder
-  - `hostname-namespace.yaml`
-  - `hostname-deployment.yaml`
-  - `hostname-service.yaml`
+  `hostname-namespace.yaml`
+  `hostname-deployment.yaml`
+  `hostname-service.yaml`
 
 - Apply the configuration 
 
@@ -204,7 +204,6 @@ You should see an output: `deployment.apps/hostname configured`
 
 `kubectl delete -f hostname-namespace.yaml`
 
-
 Deleting a namespace will delete all resources within it. 
 
 ### 5. Stateless vs Stateful Apps
@@ -236,7 +235,7 @@ Deleting a namespace will delete all resources within it.
 
 - If the `minikube tunnel` from previous sections was closed then open a new one
 
-- `minikube tunnel`
+ `minikube tunnel`
 
 - Open [localhost:5000](http://localhost:5000)
 
@@ -256,57 +255,59 @@ Deleting a namespace will delete all resources within it.
 
 > This is because the message was saved in a Persistent Volume, which gets attached to the pod. 
 
+### 6. Troubleshooting
 
+#### 6a. Following Pod Logs
 
-### 5. Network Policy
-------
-The last thing we will look at in this session is Network Policies. 
+- If the `minikube tunnel` from previous sections was closed then open a new one
 
-Before applying the configuration file, look at *guestbook-all-in-one.yaml* file
+`minikube tunnel`
 
-```
-kubectl apply -f guestbook-all-in-one.yaml
-```
-```
-kubectl get pods -w
-```
+- Create a new Nginx pods
 
-> Wait for all the Pods to be Running and Ready
+`kubectl create deployment --image nginx my-nginx`
 
-:warning: Once the pods are Ready you can press `ctrl + c` to go back. 
+- Confirm the pod is running
 
-> If not running yet enter `minikube tunnel` in a second window
+`kubectl get pods`
 
-Run `kubectl get service` to verify the port:
+- Watch the Nginx logs as you access a browser 
 
-> Open [localhost:80](http://localhost:80) on your browser
+> You may need to update the pod name
 
-:warning: Port 80 will require root privileges, so check your `minikube start` window to enter your password, if the page doesn't open. 
+`kubectl logs my-nginx-7cddc5685c-5p5sv --follow` 
 
-> Write a note into the guestbook
+- Access a browser on `http://localhost` and refresh the page a couple of times. You should see the Nginx welcome page
 
-More detailed information on Kubernetes Network Policies can be found [here](https://kubernetes.io/docs/concepts/services-networking/network-policies/) but for now we will create a simple one. 
+- Go back to your terminal and confirm you can see the logs updating as you refresh the page
 
-> Take a look at the network policy in *network-policy.yaml*. All it does is prevent ingress traffic to the redis services to stop the frontend from retrieving messages.
+#### 6b. Troubleshooting image and storage errors
 
-```
-kubectl apply -f network-policy.yaml
-```
+- Change directory into `demo06`
 
-> Reload the webpage. Within a few moments the new policy should be enforced and the message disappear
+`cd demo06`
 
-> :warning: This can take a few seconds. 
+- Look at `message-board-all-in-one-troubleshooting.yaml`
 
-> :warning: Caching mechanisms might prevent the page from refreshing properly to see the message disappear. 
-> Try `curl http://localhost:port` in your Terminal to load the current state of the page, and see notice the missing messages in the message <div>. 
+- Apply the configuration
 
-```
-kubectl delete -f network-policy.yaml
-```
+`kubectl apply -f message-board-all-in-one-troubleshooting.yaml`
 
-> Reload the webpage again
+- Check if the pods have started
 
-It might take a few more moments as before, but eventually the message will reappear as the policy allows traffic to the redis pods once again. 
+`kubectl get pods -n message-board`
+
+- If the pod is not in `running` status check the events for any errors. What do you find?
+
+`kubectl describe pods -n message-board`
+
+- Check the storage has been provisioned
+
+`kubectl get persistentvolumeclaim -n message-board`
+
+- If the status is `pending` check the events for errors. What do you find?
+
+`kubectl describe pvc -n message-board`
 
 
 ### Stopping Minikube
