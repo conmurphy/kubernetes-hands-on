@@ -5,20 +5,13 @@ Welcome to this introductory Hands-On session for Kubernetes.
 ### Table of Contents
 
 [1. Starting Minikube](#1-starting-minikube)
-
+[2. Introduction to kubectl](#2-introduction-to-kubectl)
+[3. Starting a Pod - `kubectl run`](#3-starting-a-pod---kubectl-run)
+[4. Deploying an app - `kubectl apply`](#4-deploying-an-app---kubectl-apply)
+[5. Stateless vs Stateful Apps](#5-stateless-vs-stateful-apps)
+[6. Troubleshooting](#6-troubleshooting)
+[7. Stopping Minikube](#stopping-minikube)
 [Resources](#resources)
-
-
-[Introduction to kubectl](https://github.com/cedricfeist/kubernetes-hands-on#1-introduction-to-kubectl)
-
-[Starting a Pod - Imperative](https://github.com/cedricfeist/kubernetes-hands-on#2-starting-a-pod---imperative)
-
-[Declarative Deployments](https://github.com/cedricfeist/kubernetes-hands-on#3-declarative-deployments)
-
-[Stateless vs Stateful Apps](https://github.com/cedricfeist/kubernetes-hands-on#4-stateless-vs-stateful-apps)
-
-[Network Policy](https://github.com/cedricfeist/kubernetes-hands-on#5-network-policy)
-
 
 ### 1. Setting up the repo and minikube
 ------
@@ -281,7 +274,7 @@ Deleting a namespace will delete all resources within it.
 
 - Go back to your terminal and confirm you can see the logs updating as you refresh the page
 
-#### 6b. Troubleshooting image and storage errors
+#### 6b. Troubleshooting Image and Storage Errors
 
 - Change directory into `demo06`
 
