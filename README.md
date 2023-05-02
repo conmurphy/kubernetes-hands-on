@@ -5,12 +5,19 @@ Welcome to this introductory Hands-On session for Kubernetes.
 ### Table of Contents
 
 [1. Starting Minikube](#1-starting-minikube)
+
 [2. Introduction to kubectl](#2-introduction-to-kubectl)
+
 [3. Starting a Pod - `kubectl run`](#3-starting-a-pod---kubectl-run)
+
 [4. Deploying an app - `kubectl apply`](#4-deploying-an-app---kubectl-apply)
+
 [5. Stateless vs Stateful Apps](#5-stateless-vs-stateful-apps)
+
 [6. Troubleshooting](#6-troubleshooting)
+
 [7. Stopping Minikube](#stopping-minikube)
+
 [Resources](#resources)
 
 ### 1. Setting up the repo and minikube
