@@ -26,7 +26,7 @@ Welcome to this introductory Hands-On session for Kubernetes.
 
 [https://minikube.sigs.k8s.io/docs/start/](https://minikube.sigs.k8s.io/docs/start/)
 
-> Remember to start Docker Desktop if using docker as driver
+> Note: Remember to start Docker Desktop if using docker as driver
 
 - Start Minikube and set the CNI flag to Calico
 
@@ -40,7 +40,7 @@ Welcome to this introductory Hands-On session for Kubernetes.
 ------
 You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kubernetes API. When starting Minikube, kubectl will automatically be configured to connect to the minikube cluster. 
 
-> A Kubernetes cluster is made up of a number of control plane and worker nodes.
+> Note: A Kubernetes cluster is made up of a number of control plane and worker nodes.
 
 - View the Kubernetes nodes that make up the cluster
 
@@ -58,13 +58,13 @@ You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kub
 
 `kubectl describe node <node-name>`
 
-> Namespaces are a logical way to group resources in a cluster into separate spaces
+> Note: Namespaces are a logical way to group resources in a cluster into separate spaces
 
 - Take a look at which namespaces exist by default in a Minikube cluster
 
 `kubectl get namespaces`
 
-> Pods are the smallest deployable units of computing that you can create and manage in Kubernetes. They contain one or more containers.
+> Note: Pods are the smallest deployable units of computing that you can create and manage in Kubernetes. They contain one or more containers.
 
 - View the pods in the default namespace by using the `-n <namespace name>` flag
 
@@ -77,6 +77,10 @@ You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kub
 - If you want to search all namespaces you can use the `-A` flag
 
 `kubectl get pods -A`
+
+- View all the Kubernetes system pods which implement the Kubernetes functionality
+
+`kubectl get pods -n kube-system`
 
 ### 3. Starting a Pod - `kubectl run`
 ------
@@ -97,10 +101,7 @@ You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kub
 
 `kubectl get svc`
 
-<br>
-Minikube has built-in functionality to allow you to access this traffic from the local machine. 
-<br>
-<br>
+> Note: Minikube has built-in functionality to allow you to access this traffic from the local machine. 
 
 - Open a **new** terminal/cmd instance
 
@@ -119,7 +120,6 @@ Minikube has built-in functionality to allow you to access this traffic from the
 <br>
 This simple app displays the hostname of the container you are connected to. Since you only have one right now, this won't change when refreshing the page. 
 
-
 - You can now observe the resources
 
 `kubectl get pods`
@@ -136,6 +136,10 @@ This simple app displays the hostname of the container you are connected to. Sin
 `kubectl delete service firstpod`
 
 `kubectl delete pod firstpod`
+
+- Confirm that the resources have been removed
+
+`kubectl get all`
 
 ### 4. Deploying an app - `kubectl apply`
 ------
@@ -167,7 +171,9 @@ This section will again deploy the hostname application (with 2 replicas) but th
 
 `kubectl get pods -n hostname`
 
-> Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
+> Note: Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
+>
+> In a separate terminal window run `minikube tunnel`
 
 - Take note of the address and port the app is running on. 
 
@@ -178,12 +184,13 @@ This section will again deploy the hostname application (with 2 replicas) but th
 
 - Refresh the page on your browser (ctrl/cmd + shift + r) to show change between pods. 
 
-> Every now and then the hostname should change, to show that the LoadBalancer is directing traffic to a new Pod. Caching mechanisms might prevent the page from refreshing properly to see the hostname change. 
+> Note: Every now and then the hostname should change to show that the LoadBalancer is directing traffic to a new Pod. Caching mechanisms might prevent the page from refreshing properly to see the hostname change. 
 
-> Try `curl http://localhost:port` in your Terminal to see the LadBalancing mechanism switch between the pods. 
+- If you don't see the hostname change and both hostname pods are running, try `curl http://localhost:port` in your Terminal to see the LoadBalancing mechanism switch between the pods.
 
+`curl http://localhost:port`
 
-- Edit the hostname-deployment.yaml file to have 3 replicas
+- Edit the `hostname-deployment.yaml` file to have 3 replicas
 
 - Change the number next to `replicas: ` to `3` and save the file
 
@@ -193,11 +200,19 @@ This section will again deploy the hostname application (with 2 replicas) but th
 
 You should see an output: `deployment.apps/hostname configured`
 
+- Confirm that **three** pods are now running
+
+`kubectl get pods -n hostname`
+
 - Cleanup the resouces
 
 `kubectl delete -f hostname-namespace.yaml`
 
-Deleting a namespace will delete all resources within it. 
+> Note: Deleting a namespace will delete all resources within it (it might take some time as the pods terminate)
+
+- Confirm that the resources have been removed
+
+`kubectl get all -n hostname`
 
 ### 5. Stateless vs Stateful Apps
 ------
@@ -207,8 +222,6 @@ Deleting a namespace will delete all resources within it.
 `cd demo05`
 
 - Look at `message-board-all-in-one.yaml`
-
-> Note that instead of keeping each resource in a separate file, all have been combined into a single file.
 
 - Apply the configuration
 
@@ -222,13 +235,13 @@ Deleting a namespace will delete all resources within it.
 
 `kubectl get pods -n message-board -w`
 
-- Wait for The Pod to be Running and Ready. 
+- Wait for the pod to be `running` 
 
 - Once the pods are running, press `ctrl + c` to go back. 
 
-- If the `minikube tunnel` from previous sections was closed then open a new one
-
- `minikube tunnel`
+> Note: Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
+>
+> In a separate terminal window run `minikube tunnel`
 
 - Open [localhost:5000](http://localhost:5000)
 
@@ -246,7 +259,15 @@ Deleting a namespace will delete all resources within it.
 
 - Confirm that the message is still there.
 
-> This is because the message was saved in a Persistent Volume, which gets attached to the pod. 
+> Note: This is because the message was saved in a Persistent Volume, which gets attached to the pod. 
+
+- Cleanup the resouces
+
+`kubectl delete -f message-board-all-in-one.yaml`
+
+- Confirm that the resources have been removed
+
+`kubectl get all -n message-board`
 
 ### 6. Troubleshooting
 
@@ -264,15 +285,25 @@ Deleting a namespace will delete all resources within it.
 
 `kubectl get pods`
 
+- To make this pod accessible from outside the cluster, you need to create a service.
+
+`kubectl expose deployment my-nginx --port=30001 --target-port=80 --type=LoadBalancer`
+
 - Watch the Nginx logs as you access a browser 
 
-> You may need to update the pod name
+`kubectl logs deployment/my-nginx --follow` 
 
-`kubectl logs my-nginx-7cddc5685c-5p5sv --follow` 
-
-- Access a browser on `http://localhost` and refresh the page a couple of times. You should see the Nginx welcome page
+- Access a browser on `http://localhost:30001` and refresh the page a couple of times. You should see the Nginx welcome page
 
 - Go back to your terminal and confirm you can see the logs updating as you refresh the page
+
+- Cleanup the resouces
+
+`kubectl delete deployment my-nginx`
+
+- Confirm that the resources have been removed
+
+`kubectl get all`
 
 #### 6b. Troubleshooting Image and Storage Errors
 
@@ -302,6 +333,13 @@ Deleting a namespace will delete all resources within it.
 
 `kubectl describe pvc -n message-board`
 
+- Cleanup the resouces
+
+`kubectl delete -f  message-board-all-in-one-troubleshooting.yaml -n message-board`
+
+- Confirm that the resources have been removed
+
+`kubectl get all -n message-board`
 
 ### Stopping Minikube
 ------

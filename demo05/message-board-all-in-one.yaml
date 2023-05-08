@@ -4,6 +4,21 @@ metadata:
   name: message-board
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: message-board
+  namespace: message-board
+  labels:
+    name: message-board
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    nodePort: 30005
+  selector:
+    name: message-board
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: message-board-pvc
@@ -47,18 +62,4 @@ spec:
       - name: demovolume1
         persistentVolumeClaim:
           claimName: message-board-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: message-board
-  namespace: message-board
-  labels:
-    name: message-board
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 5000
-    nodePort: 30005
-  selector:
-    name: message-board
+
