@@ -80,7 +80,7 @@ You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kub
 
 - View all the Kubernetes system pods which implement the Kubernetes functionality
 
-`kubectl get pods -n kube-system`
+`kubectl get pods -n kube-system -o wide`
 
 ### 3. Starting a Pod - `kubectl run`
 ------
