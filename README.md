@@ -13,6 +13,8 @@ Welcome to this introductory Hands-On session for Kubernetes.
 * [7. Stopping Minikube](#stopping-minikube) 
 * [Resources](#resources) 
 
+> **Note**: If you are using Killercoda you will not need to use the `minikube tunnel` command. Make sure to look at the instructions for the Killercoda `kubectl port-forward` command
+
 ### 1. Setting up the repo and minikube
 ------
 
@@ -93,9 +95,15 @@ You can interact with Kubernetes via CLI tool, Kubectl. Kubectl talks to the Kub
 
 `kubectl get pods`
 
-- To make this pod accessible from outside the cluster, you need to create a service.
+- **Killercoda**: To make this pod accessible from outside the cluster, you need to port-forward.
+
+`kubectl port-forward firstpod 8000:8000 --address 0.0.0.0`
+
+- **Minikube**: To make this pod accessible from outside the cluster, you need to create a service.
 
 `kubectl expose pod firstpod --port=8000 --type=LoadBalancer`
+
+
 
 - Check the Kubernetes service has been created. You should see the `EXTERNAL-IP` is in `<pending>` status
 
@@ -238,6 +246,12 @@ You should see an output: `deployment.apps/hostname configured`
 - Wait for the pod to be `running` 
 
 - Once the pods are running, press `ctrl + c` to go back. 
+
+- **Killercoda**: First update the message-board-all-in-one.yaml. Change the from `storageClassName: standard` to `storageClassName: local-path`
+
+- **Killercoda**: To make this pod accessible from outside the cluster, you need to port-forward.
+
+`kubectl port-forward -n message-board deployment/message-board 5000:5000 --address 0.0.0.0`
 
 > Note: Your `minikube tunnel` session should still be open for this. Start a new one if it is closed, or if it is not working within a few seconds. 
 >
