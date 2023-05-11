@@ -299,15 +299,19 @@ You should see an output: `deployment.apps/hostname configured`
 
 `kubectl get pods`
 
-- To make this pod accessible from outside the cluster, you need to create a service.
+- **Killercoda**: To make this pod accessible from outside the cluster, you need to port-forward.
+
+`kubectl port-forward firstpod 30001:80 --address 0.0.0.0`
+
+- **Minikube**: To make this pod accessible from outside the cluster, you need to create a service.
 
 `kubectl expose deployment my-nginx --port=30001 --target-port=80 --type=LoadBalancer`
+
+- **Minikube**: Access a browser on `http://localhost:30001` and refresh the page a couple of times. You should see the Nginx welcome page
 
 - Watch the Nginx logs as you access a browser 
 
 `kubectl logs deployment/my-nginx --follow` 
-
-- Access a browser on `http://localhost:30001` and refresh the page a couple of times. You should see the Nginx welcome page
 
 - Go back to your terminal and confirm you can see the logs updating as you refresh the page
 
